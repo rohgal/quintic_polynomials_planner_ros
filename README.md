@@ -1,5 +1,5 @@
-# Quintic Polynomial Planner for ROS
-This package is an Quintic Polynomial Planner configured with ROS service.
+# Quintic Polynomials Planner for ROS
+This package is an Quintic Polynomials Planner configured with ROS service.
 
 ## Service Request
 - start_pnt (geometry_msgs/Point)
@@ -43,7 +43,7 @@ git clone https://github.com/rohgal/astar_ros.git
 ```
 catkin_make
 ```
-- Launch quintic_polynomial_server ROS server
+- Launch Quintic Polynomials ROS server
 ```
 roslaunch quintic_polynomials_planner_ros quintic_polynomial_server.launch
 ```
