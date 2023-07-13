@@ -43,7 +43,7 @@ git clone https://github.com/rohgal/astar_ros.git
 ```
 catkin_make
 ```
-- Launch Quintic Polynomials ROS server
+- Launch quintic polynomials ROS server.
 ```
 roslaunch quintic_polynomials_planner_ros quintic_polynomial_server.launch
 ```
