@@ -1,6 +1,6 @@
 # Quintic Polynomial Planner for ROS
 This package is an Quintic Polynomial Planner configured with ROS service.
-hello
+
 ## Service Request
 - start_pnt (geometry_msgs/Point)
 
@@ -14,10 +14,20 @@ hello
 
 - goal_acc (geometry_msgs/Twist)
 
+- T (std_msgs/Float32)
+
+- dt (std_msgs/Float32)
+
 ## Service Response
 - x_coeff (std_msgs/Float32[])
 
 - y_coeff (std_msgs/Float32[])
+
+- path (nav_msgs/Path)
+
+- vels (geometry_msgs/Twist[])
+
+- accs (geometry_msgs/Twist[])
 
 ## Prerequisites
 - Ubuntu
