@@ -1,38 +1,12 @@
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <vector>
-#include <ros/ros.h>
-#include <tf/tf.h>
-#include <std_msgs/Float32.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Accel.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <Eigen/Eigen>
-#include "quintic_polynomials_planner_ros/GetPolynomials.h"
+#include "quintic_polynomials_planner.hpp"
 
-using namespace std;
-using Eigen::MatrixXd;
+Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
+  pub_path_speed = nh_.advertise<plan2control_msgs::PathSpeed>("reference_path_speed", 1);
+  polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
+}
 
-class Quintic_Polynomials_Planner {
-  private:
-    vector<double> coefficients_x;
-    vector<double> coefficients_y;
-    vector<double> pnts_x;
-    vector<double> pnts_y;
-    vector<double> vels_x;
-    vector<double> vels_y;
-    vector<double> accs_x;
-    vector<double> accs_y;
-
-  public:
-    std::vector<std_msgs::Float32> convertToFloat32Array(const std::vector<double>& input);
-    vector<double> get_coefficients(vector<double>& start, vector<double>& end, double T);
-    double get_point(vector<double>& coefficients, double t);
-    double get_vel(vector<double>& coefficients, double t);
-    double get_acc(vector<double>& coefficients, double t);
-    bool solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res);
-
+Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
+  ROS_INFO("Destruct Quintic_Polynomials_Planner");
 };
 
 std::vector<std_msgs::Float32> Quintic_Polynomials_Planner::convertToFloat32Array(const std::vector<double>& input) {
@@ -108,6 +82,7 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   res.y_coeff = convertToFloat32Array(coefficients_y);
 
   tf::Quaternion quat;
+  plan2control_msgs::PathSpeed pathspeed;
 
   for (double t = 0.0; t <= T + dt; t += dt) {
     geometry_msgs::PoseStamped pose;
@@ -118,29 +93,32 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     double pnt_y = get_point(coefficients_y, t);
     double vel_x = get_vel(coefficients_x, t);
     double vel_y = get_vel(coefficients_y, t);
-    double acc_x = get_acc(coefficients_x, t);
-    double acc_y = get_acc(coefficients_y, t);
+    // double acc_x = get_acc(coefficients_x, t);
+    // double acc_y = get_acc(coefficients_y, t);
 
     pnts_x.push_back(pnt_x);
     pnts_y.push_back(pnt_y);
-    vels_x.push_back(vel_x);
-    vels_y.push_back(vel_y);
-    accs_x.push_back(acc_x);
-    accs_y.push_back(acc_y);
+    // vels_x.push_back(vel_x);
+    // vels_y.push_back(vel_y);
+    // accs_x.push_back(acc_x);
+    // accs_y.push_back(acc_y);
 
     pose.pose.position.x = pnt_x;
     pose.pose.position.y = pnt_y;
     quat.setRPY(0.0, 0.0, atan2(vel_y, vel_x));
     tf::quaternionTFToMsg(quat, pose.pose.orientation);
-    vel.linear.x = vel_x;
-    vel.linear.y = vel_y;
-    acc.linear.x = acc_x;
-    acc.linear.y = acc_y;
+    // vel.linear.x = vel_x;
+    // vel.linear.y = vel_y;
+    // acc.linear.x = acc_x;
+    // acc.linear.y = acc_y;
     
     res.path.poses.push_back(pose);
-    res.vels.push_back(vel);
-    res.accs.push_back(acc);
+    // res.vels.push_back(vel);
+    // res.accs.push_back(acc);
+    pathspeed.path.poses.push_back(pose);
   }
+  pathspeed.speed = 5.0;
+  pub_path_speed.publish(pathspeed);
 
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);
@@ -148,13 +126,3 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   return true;
 }
 
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "quintic_polynomials_server");
-  ros::NodeHandle nh;
-  Quintic_Polynomials_Planner planner;
-  ros::ServiceServer server = nh.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, &planner);
-  ROS_INFO("Quintic Polynomials Planner is ready.");
-  ros::spin();
-
-  return 0;
-}

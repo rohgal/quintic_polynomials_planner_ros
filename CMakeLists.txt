@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
         nav_msgs
         tf
         message_generation
+        plan2control_msgs
         )
 
 add_service_files(
@@ -24,7 +25,8 @@ add_service_files(
 generate_messages(DEPENDENCIES std_msgs geometry_msgs nav_msgs)
 
 catkin_package(
-        CATKIN_DEPENDS roscpp std_msgs geometry_msgs nav_msgs tf message_runtime
+        INCLUDE_DIRS include
+        CATKIN_DEPENDS roscpp std_msgs geometry_msgs nav_msgs tf message_runtime plan2control_msgs
         DEPENDS Eigen
 )
 
@@ -34,5 +36,5 @@ include_directories(
         ${Eigen_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME} src/quintic_polynomials_server.cpp)
+add_executable(${PROJECT_NAME} src/quintic_polynomials_planner.cpp src/quintic_polynomials_node.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
