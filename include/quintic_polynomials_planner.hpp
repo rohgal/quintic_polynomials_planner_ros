@@ -10,7 +10,6 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Accel.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <plan2control_msgs/PathSpeed.h>
 #include <Eigen/Eigen>
 #include "quintic_polynomials_planner_ros/GetPolynomials.h"
 
@@ -24,7 +23,6 @@ class Quintic_Polynomials_Planner {
 
   private:
     ros::NodeHandle nh_;
-    ros::Publisher pub_path_speed;
     ros::ServiceServer polynomials_server;
     
     vector<double> coefficients_x;

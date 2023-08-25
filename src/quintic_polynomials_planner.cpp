@@ -1,7 +1,6 @@
 #include "quintic_polynomials_planner.hpp"
 
 Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
-  pub_path_speed = nh_.advertise<plan2control_msgs::PathSpeed>("reference_path_speed", 1);
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
 }
 
@@ -68,10 +67,12 @@ double Quintic_Polynomials_Planner::get_acc(vector<double>& coefficients, double
 bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res) {
   double start_time = ros::Time::now().toSec();
 
-  vector<double> start_x = {req.start_pnt.x, req.start_vel.linear.x, req.start_acc.linear.x};
-  vector<double> end_x = {req.goal_pnt.x, req.goal_vel.linear.x, req.goal_acc.linear.x};
-  vector<double> start_y = {req.start_pnt.y, req.start_vel.linear.y, req.start_acc.linear.x};
-  vector<double> end_y = {req.goal_pnt.y, req.goal_vel.linear.y, req.goal_acc.linear.y};
+  double start_yaw_rad = req.start_yaw.data * M_PI /180.0;
+  double end_yaw_rad = req.goal_yaw.data * M_PI /180.0;
+  vector<double> start_x = {req.start_pnt.x, req.start_vel.data * cos(start_yaw_rad), req.start_acc.data * cos(start_yaw_rad)};
+  vector<double> end_x = {req.goal_pnt.x, req.goal_vel.data * cos(end_yaw_rad), req.goal_acc.data * cos(end_yaw_rad)};
+  vector<double> start_y = {req.start_pnt.y, req.start_vel.data * sin(start_yaw_rad), req.start_acc.data * sin(start_yaw_rad)};
+  vector<double> end_y = {req.goal_pnt.y, req.goal_vel.data * sin(end_yaw_rad), req.goal_acc.data * sin(end_yaw_rad)};
   double T = req.T.data;
   double dt = req.dt.data;
 
@@ -82,7 +83,6 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   res.y_coeff = convertToFloat32Array(coefficients_y);
 
   tf::Quaternion quat;
-  plan2control_msgs::PathSpeed pathspeed;
 
   for (double t = 0.0; t <= T + dt; t += dt) {
     geometry_msgs::PoseStamped pose;
@@ -102,7 +102,8 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     // vels_y.push_back(vel_y);
     // accs_x.push_back(acc_x);
     // accs_y.push_back(acc_y);
-
+    pose.header.stamp = ros::Time::now();
+    pose.header.frame_id = "burger/odom";
     pose.pose.position.x = pnt_x;
     pose.pose.position.y = pnt_y;
     quat.setRPY(0.0, 0.0, atan2(vel_y, vel_x));
@@ -117,8 +118,6 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     // res.accs.push_back(acc);
     pathspeed.path.poses.push_back(pose);
   }
-  pathspeed.speed = 5.0;
-  pub_path_speed.publish(pathspeed);
 
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);

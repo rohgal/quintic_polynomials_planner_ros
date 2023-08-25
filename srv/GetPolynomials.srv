@@ -1,9 +1,11 @@
 geometry_msgs/Point start_pnt
-geometry_msgs/Twist start_vel
-geometry_msgs/Accel start_acc
+std_msgs/Float32 start_vel
+std_msgs/Float32 start_acc
+std_msgs/Float32 start_yaw
 geometry_msgs/Point goal_pnt
-geometry_msgs/Twist goal_vel
-geometry_msgs/Accel goal_acc
+std_msgs/Float32 goal_vel
+std_msgs/Float32 goal_acc
+std_msgs/Float32 goal_yaw
 std_msgs/Float32 T
 std_msgs/Float32 dt
 ---
