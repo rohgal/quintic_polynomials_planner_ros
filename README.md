@@ -4,15 +4,19 @@ This repo is an quintic polynomials planner package configured with ROS service.
 ## Service Request
 - start_pnt (geometry_msgs/Point)
 
-- start_vel (geometry_msgs/Twist)
+- start_vel (std_msgs/Float32)
 
-- start_acc (geometry_msgs/Twist)
+- start_acc (std_msgs/Float32)
+
+- start_yaw (std_msgs/Float32)
 
 - goal_pnt (geometry_msgs/Point)
 
-- goal_vel (geometry_msgs/Twist)
+- goal_vel (std_msgs/Float32)
 
-- goal_acc (geometry_msgs/Twist)
+- goal_acc (std_msgs/Float32)
+
+- goal_yaw (std_msgs/Float32)
 
 - T (std_msgs/Float32)
 
