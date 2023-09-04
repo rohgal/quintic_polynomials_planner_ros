@@ -2,7 +2,8 @@
 
 Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
-}
+  pub_polypath_vis = nh_.advertise<nav_msgs::Path>("polynomial_path_vis", 1, true);
+  }
 
 Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
   ROS_INFO("Destruct Quintic_Polynomials_Planner");
@@ -83,6 +84,10 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   res.y_coeff = convertToFloat32Array(coefficients_y);
 
   tf::Quaternion quat;
+  nav_msgs::Path path_vis;
+
+  res.path.header.frame_id = "map";
+  path_vis.header.frame_id = "map";
 
   for (double t = 0.0; t <= T + dt; t += dt) {
     geometry_msgs::PoseStamped pose;
@@ -112,12 +117,13 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     // vel.linear.y = vel_y;
     // acc.linear.x = acc_x;
     // acc.linear.y = acc_y;
-    
+
     res.path.poses.push_back(pose);
     // res.vels.push_back(vel);
     // res.accs.push_back(acc);
-    pathspeed.path.poses.push_back(pose);
+    path_vis.poses.push_back(pose);
   }
+  pub_polypath_vis.publish(path_vis);
 
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);

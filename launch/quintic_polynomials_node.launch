@@ -1,4 +1,9 @@
 <launch>
+    <arg name="rviz" default="true" />
+
+    <group if="$(arg rviz)">
+        <include file="$(find quintic_polynomials_planner_ros)/launch/rviz.launch" />
+    </group>
 
     <node pkg="quintic_polynomials_planner_ros" type="quintic_polynomials_planner_ros" name="quintic_polynomials_node" output="screen">
     </node>

@@ -35,6 +35,8 @@
   <build_depend>tf</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>cmake_modules</build_depend>
+  <build_depend>plan2control_msgs</build_depend>
+  <build_export_depend>plan2control_msgs</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>

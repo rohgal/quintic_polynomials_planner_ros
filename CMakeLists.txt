@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
         nav_msgs
         tf
         message_generation
+        plan2control_msgs
         )
 
 add_service_files(
@@ -25,7 +26,7 @@ generate_messages(DEPENDENCIES std_msgs geometry_msgs nav_msgs)
 
 catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS roscpp std_msgs geometry_msgs nav_msgs tf message_runtime
+        CATKIN_DEPENDS roscpp std_msgs geometry_msgs nav_msgs tf message_runtime plan2control_msgs
         DEPENDS Eigen
 )
 
