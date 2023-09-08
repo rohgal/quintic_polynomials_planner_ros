@@ -3,7 +3,7 @@
 Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
   pub_polypath_vis = nh_.advertise<nav_msgs::Path>("polynomial_path_vis", 1, true);
-  nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/saved_path/path.yaml");
+  nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/path_saved/path.yaml");
 }
 
 Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
