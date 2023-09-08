@@ -6,6 +6,7 @@
     </group>
 
     <node pkg="quintic_polynomials_planner_ros" type="quintic_polynomials_planner_ros" name="quintic_polynomials_node" output="screen">
+        <param name="Filepath" value="/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/saved_path/path.yaml"/>
     </node>
 
 </launch>

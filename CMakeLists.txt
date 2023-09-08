@@ -37,4 +37,4 @@ include_directories(
 )
 
 add_executable(${PROJECT_NAME} src/quintic_polynomials_planner.cpp src/quintic_polynomials_node.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Eigen_LIBRARIES} yaml-cpp)

@@ -3,7 +3,8 @@
 Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
   pub_polypath_vis = nh_.advertise<nav_msgs::Path>("polynomial_path_vis", 1, true);
-  }
+  nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/saved_path/path.yaml");
+}
 
 Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
   ROS_INFO("Destruct Quintic_Polynomials_Planner");
@@ -65,6 +66,56 @@ double Quintic_Polynomials_Planner::get_acc(vector<double>& coefficients, double
   return acc;
 }
 
+void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg, const std::string& file_path)
+{
+    std::ofstream yaml_file(file_path);
+
+    if (!yaml_file.is_open())
+    {
+        ROS_ERROR("Failed to open YAML file for writing");
+        return;
+    }
+
+    yaml_file << std::fixed << std::setprecision(6);
+
+    yaml_file << "path_poses:" << std::endl;
+    for (const auto& pose_stamped : path_msg.poses)
+    {
+        double x = pose_stamped.pose.position.x;
+        double y = pose_stamped.pose.position.y;
+        double yaw_degrees = calculateYawfromQuat(pose_stamped.pose.orientation);
+
+        yaml_file << "  - { x: " << x
+                  << ", y: " << y
+                  << ", yaw: deg(" << yaw_degrees << ") }" << std::endl;
+    }
+
+    yaml_file.close();
+
+    ROS_INFO("Path data saved");
+}
+
+double Quintic_Polynomials_Planner::calculateYawfromQuat(const geometry_msgs::Quaternion& orientation)
+{
+    tf::Quaternion tf_quaternion;
+    tf::quaternionMsgToTF(orientation, tf_quaternion);
+
+    double roll, pitch, yaw;
+    tf::Matrix3x3(tf_quaternion).getRPY(roll, pitch, yaw);
+
+    return yaw * 180.0 / M_PI;
+}
+
+geometry_msgs::Quaternion Quintic_Polynomials_Planner::calculateQuatfromYaw(const double& yaw)
+{
+    tf::Quaternion tf_quaternion;
+    geometry_msgs::Quaternion orientation;
+    tf_quaternion.setRPY(0.0, 0.0, yaw);
+    tf::quaternionTFToMsg(tf_quaternion, orientation);
+
+    return orientation;
+}
+
 bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res) {
   double start_time = ros::Time::now().toSec();
 
@@ -83,7 +134,6 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   res.x_coeff = convertToFloat32Array(coefficients_x);
   res.y_coeff = convertToFloat32Array(coefficients_y);
 
-  tf::Quaternion quat;
   nav_msgs::Path path_vis;
 
   res.path.header.frame_id = "map";
@@ -107,12 +157,12 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     // vels_y.push_back(vel_y);
     // accs_x.push_back(acc_x);
     // accs_y.push_back(acc_y);
+
     pose.header.stamp = ros::Time::now();
     pose.header.frame_id = "burger/odom";
     pose.pose.position.x = pnt_x;
     pose.pose.position.y = pnt_y;
-    quat.setRPY(0.0, 0.0, atan2(vel_y, vel_x));
-    tf::quaternionTFToMsg(quat, pose.pose.orientation);
+    pose.pose.orientation = calculateQuatfromYaw(atan2(vel_y, vel_x));
     // vel.linear.x = vel_x;
     // vel.linear.y = vel_y;
     // acc.linear.x = acc_x;
@@ -124,6 +174,7 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     path_vis.poses.push_back(pose);
   }
   pub_polypath_vis.publish(path_vis);
+  save_path2yaml(path_vis, file_path);
 
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);
