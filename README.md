@@ -42,6 +42,7 @@ to **~/path_saved/path.yaml**
 ## Prerequisites
 - Ubuntu
 - ROS
+- Eigen
 
 Tested on Ubuntu 20.04, ROS Noetic.
 ## Getting Started
