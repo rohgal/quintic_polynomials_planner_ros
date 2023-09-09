@@ -33,6 +33,9 @@ This repo is an quintic polynomials planner package compatible with ROS.
 
 - accs (geometry_msgs/Twist[])
 
+## Topic to Be Published
+- /polynomial_path_vis (nav_msgs/Path)
+
 ## Generated Path is Saved as YAML
 in **path_saved** directory.
 
