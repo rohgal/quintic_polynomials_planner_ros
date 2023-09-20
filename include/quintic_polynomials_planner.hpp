@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <yaml-cpp/yaml.h>
+#include <nlohmann/json.hpp>
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -18,6 +19,7 @@
 
 using namespace std;
 using Eigen::MatrixXd;
+using json = nlohmann::json;
 
 class Quintic_Polynomials_Planner {
   public:
@@ -46,6 +48,7 @@ class Quintic_Polynomials_Planner {
     double get_vel(vector<double>& coefficients, double t);
     double get_acc(vector<double>& coefficients, double t);
     void save_path2yaml(const nav_msgs::Path& path_msg, const std::string& file_path);
+    void save_path2json(const nav_msgs::Path& path_msg, const std::string& file_path);
     double calculateYawfromQuat(const geometry_msgs::Quaternion& orientation);
     geometry_msgs::Quaternion calculateQuatfromYaw(const double& yaw);
     bool solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res);

@@ -3,7 +3,7 @@
 Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
   pub_polypath_vis = nh_.advertise<nav_msgs::Path>("polynomial_path_vis", 1, true);
-  nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/path_saved/path.yaml");
+  nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/path_saved/path.json");
 }
 
 Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
@@ -77,8 +77,8 @@ void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg,
     }
 
     yaml_file << std::fixed << std::setprecision(6);
-
     yaml_file << "path_poses:" << std::endl;
+
     for (const auto& pose_stamped : path_msg.poses)
     {
         double x = pose_stamped.pose.position.x;
@@ -92,7 +92,55 @@ void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg,
 
     yaml_file.close();
 
-    ROS_INFO("Path data saved");
+    ROS_INFO("Path data saved as YAML");
+}
+
+void Quintic_Polynomials_Planner::save_path2json(const nav_msgs::Path& path_msg, const std::string& file_path)
+{
+    // Create a JSON object
+    json path_json;
+
+    // Serialize header
+    path_json["header"]["seq"] = path_msg.header.seq;
+    path_json["header"]["stamp"]["secs"] = path_msg.header.stamp.sec;
+    path_json["header"]["stamp"]["nsecs"] = path_msg.header.stamp.nsec;
+    path_json["header"]["frame_id"] = path_msg.header.frame_id;
+
+    // Serialize poses
+    for (const auto& pose_stamped : path_msg.poses)
+    {
+        json pose_json;
+
+        // Serialize header of pose_stamped
+        pose_json["header"]["seq"] = pose_stamped.header.seq;
+        pose_json["header"]["stamp"]["secs"] = pose_stamped.header.stamp.sec;
+        pose_json["header"]["stamp"]["nsecs"] = pose_stamped.header.stamp.nsec;
+        pose_json["header"]["frame_id"] = pose_stamped.header.frame_id;
+
+        // Serialize pose
+        pose_json["pose"]["position"]["x"] = pose_stamped.pose.position.x;
+        pose_json["pose"]["position"]["y"] = pose_stamped.pose.position.y;
+        pose_json["pose"]["position"]["z"] = pose_stamped.pose.position.z;
+        pose_json["pose"]["orientation"]["x"] = pose_stamped.pose.orientation.x;
+        pose_json["pose"]["orientation"]["y"] = pose_stamped.pose.orientation.y;
+        pose_json["pose"]["orientation"]["z"] = pose_stamped.pose.orientation.z;
+        pose_json["pose"]["orientation"]["w"] = pose_stamped.pose.orientation.w;
+
+        path_json["poses"].push_back(pose_json);
+    }
+
+    // Save JSON data to a file
+    std::ofstream json_file(file_path);
+    if (json_file.is_open())
+    {
+        json_file << std::setw(4) << path_json.dump(); // Indent JSON for readability
+        json_file.close();
+        ROS_INFO("Path data saved as JSON");
+    }
+    else
+    {
+        ROS_ERROR("Failed to open JSON file for writing");
+    }
 }
 
 double Quintic_Polynomials_Planner::calculateYawfromQuat(const geometry_msgs::Quaternion& orientation)
@@ -174,7 +222,7 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     path_vis.poses.push_back(pose);
   }
   pub_polypath_vis.publish(path_vis);
-  save_path2yaml(path_vis, file_path);
+  save_path2json(path_vis, file_path);
 
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);
