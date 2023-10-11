@@ -37,7 +37,7 @@ This repo is an quintic polynomials planner package compatible with ROS.
 - /polynomial_path_vis (nav_msgs/Path)
 
 ## Generated Path is Saved as YAML or JSON
-to **~/path_saved/path.yaml** or **~/path_saved/path.yaml**
+to **~/path_saved/path.yaml** or **~/path_saved/path.json**
 
 ## Prerequisites
 - Ubuntu
