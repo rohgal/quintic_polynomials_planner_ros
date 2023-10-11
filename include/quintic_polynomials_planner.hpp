@@ -42,13 +42,14 @@ class Quintic_Polynomials_Planner {
     vector<double> accs_x;
     vector<double> accs_y;
 
-    std::vector<std_msgs::Float32> convertToFloat32Array(const std::vector<double>& input);
+    vector<std_msgs::Float32> convertToFloat32Array(const vector<double>& input);
     vector<double> get_coefficients(vector<double>& start, vector<double>& end, double T);
     double get_point(vector<double>& coefficients, double t);
     double get_vel(vector<double>& coefficients, double t);
     double get_acc(vector<double>& coefficients, double t);
-    void save_path2yaml(const nav_msgs::Path& path_msg, const std::string& file_path);
-    void save_path2json(const nav_msgs::Path& path_msg, const std::string& file_path);
+    double calculatePathLength(const nav_msgs::Path& path_msg);
+    void save_path2yaml(const nav_msgs::Path& path_msg, const string& file_path);
+    void save_path2json(const nav_msgs::Path& path_msg, const string& file_path);
     double calculateYawfromQuat(const geometry_msgs::Quaternion& orientation);
     geometry_msgs::Quaternion calculateQuatfromYaw(const double& yaw);
     bool solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res);

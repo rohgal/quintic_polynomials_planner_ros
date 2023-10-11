@@ -1,27 +1,32 @@
 #include "quintic_polynomials_planner.hpp"
 
-Quintic_Polynomials_Planner::Quintic_Polynomials_Planner() {
+Quintic_Polynomials_Planner::Quintic_Polynomials_Planner()
+{
   polynomials_server = nh_.advertiseService("get_polynomials", &Quintic_Polynomials_Planner::solve_polynomials, this);
   pub_polypath_vis = nh_.advertise<nav_msgs::Path>("polynomial_path_vis", 1, true);
   nh_.param<string>("FilePath", file_path, "/home/cai/train_ws/src/2D_trainer/pkgs/quintic_polynomials_planner_ros/path_saved/path.json");
 }
 
-Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner() {
+Quintic_Polynomials_Planner::~Quintic_Polynomials_Planner()
+{
   ROS_INFO("Destruct Quintic_Polynomials_Planner");
 };
 
-std::vector<std_msgs::Float32> Quintic_Polynomials_Planner::convertToFloat32Array(const std::vector<double>& input) {
-  std::vector<std_msgs::Float32> output;
+vector<std_msgs::Float32> Quintic_Polynomials_Planner::convertToFloat32Array(const vector<double>& input)
+{
+  vector<std_msgs::Float32> output;
   output.resize(input.size());
 
-  for (size_t i = 0; i < input.size(); ++i) {
+  for (size_t i = 0; i < input.size(); ++i)
+  {
     output[i].data = static_cast<float>(input[i]);
   }
 
   return output;
 }
 
-vector<double> Quintic_Polynomials_Planner::get_coefficients(vector<double>& start, vector<double>& end, double T) {
+vector<double> Quintic_Polynomials_Planner::get_coefficients(vector<double>& start, vector<double>& end, double T)
+{
   MatrixXd A = MatrixXd(3, 3);
 	A << T*T*T, T*T*T*T, T*T*T*T*T,
 			    3*T*T, 4*T*T*T,5*T*T*T*T,
@@ -45,30 +50,56 @@ vector<double> Quintic_Polynomials_Planner::get_coefficients(vector<double>& sta
     return result;
 }
 
-double Quintic_Polynomials_Planner::get_point(vector<double>& coefficients, double t) {
+double Quintic_Polynomials_Planner::get_point(vector<double>& coefficients, double t)
+{
   double point;
   point = coefficients[0] + coefficients[1]*t + coefficients[2]*t*t + coefficients[3]*t*t*t + coefficients[4]*t*t*t*t + coefficients[5]*t*t*t*t*t;
 
   return point;
 }
 
-double Quintic_Polynomials_Planner::get_vel(vector<double>& coefficients, double t) {
+double Quintic_Polynomials_Planner::get_vel(vector<double>& coefficients, double t)
+{
   double vel;
   vel = coefficients[1] + 2*coefficients[2]*t + 3*coefficients[3]*t*t + 4*coefficients[4]*t*t*t + 5*coefficients[5]*t*t*t*t;
 
   return vel;
 }
 
-double Quintic_Polynomials_Planner::get_acc(vector<double>& coefficients, double t) {
+double Quintic_Polynomials_Planner::get_acc(vector<double>& coefficients, double t)
+{
   double acc;
   acc = 2*coefficients[2] + 6*coefficients[3]*t + 12*coefficients[4]*t*t + 20*coefficients[5]*t*t*t;
 
   return acc;
 }
 
-void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg, const std::string& file_path)
+double Quintic_Polynomials_Planner::calculatePathLength(const nav_msgs::Path& path_msg)
 {
-    std::ofstream yaml_file(file_path);
+  double path_length = 0.0;
+
+    for (size_t i = 1; i < path_msg.poses.size(); ++i)
+    {
+        const geometry_msgs::PoseStamped& current_pose = path_msg.poses[i];
+        const geometry_msgs::PoseStamped& prev_pose = path_msg.poses[i - 1];
+
+        double dx = current_pose.pose.position.x - prev_pose.pose.position.x;
+        double dy = current_pose.pose.position.y - prev_pose.pose.position.y;
+        double dz = current_pose.pose.position.z - prev_pose.pose.position.z;
+
+        double distance = sqrt(dx * dx + dy * dy + dz * dz);
+
+        path_length += distance;
+    }
+
+    ROS_INFO("Path Length: %.2f meters", path_length);
+
+    return path_length;
+}
+
+void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg, const string& file_path)
+{
+    ofstream yaml_file(file_path);
 
     if (!yaml_file.is_open())
     {
@@ -76,8 +107,8 @@ void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg,
         return;
     }
 
-    yaml_file << std::fixed << std::setprecision(6);
-    yaml_file << "path_poses:" << std::endl;
+    yaml_file << fixed << setprecision(6);
+    yaml_file << "path_poses:" << endl;
 
     for (const auto& pose_stamped : path_msg.poses)
     {
@@ -87,7 +118,7 @@ void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg,
 
         yaml_file << "  - { x: " << x
                   << ", y: " << y
-                  << ", yaw: deg(" << yaw_degrees << ") }" << std::endl;
+                  << ", yaw: deg(" << yaw_degrees << ") }" << endl;
     }
 
     yaml_file.close();
@@ -95,7 +126,7 @@ void Quintic_Polynomials_Planner::save_path2yaml(const nav_msgs::Path& path_msg,
     ROS_INFO("Path data saved as YAML");
 }
 
-void Quintic_Polynomials_Planner::save_path2json(const nav_msgs::Path& path_msg, const std::string& file_path)
+void Quintic_Polynomials_Planner::save_path2json(const nav_msgs::Path& path_msg, const string& file_path)
 {
     // Create a JSON object
     json path_json;
@@ -130,7 +161,7 @@ void Quintic_Polynomials_Planner::save_path2json(const nav_msgs::Path& path_msg,
     }
 
     // Save JSON data to a file
-    std::ofstream json_file(file_path);
+    ofstream json_file(file_path);
     if (json_file.is_open())
     {
         json_file << std::setw(4) << path_json.dump(); // Indent JSON for readability
@@ -164,7 +195,8 @@ geometry_msgs::Quaternion Quintic_Polynomials_Planner::calculateQuatfromYaw(cons
     return orientation;
 }
 
-bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res) {
+bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_ros::GetPolynomials::Request& req, quintic_polynomials_planner_ros::GetPolynomials::Response& res)
+{
   double start_time = ros::Time::now().toSec();
 
   double start_yaw_rad = req.start_yaw.data * M_PI /180.0;
@@ -187,7 +219,8 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
   res.path.header.frame_id = "map";
   path_vis.header.frame_id = "map";
 
-  for (double t = 0.0; t <= T + dt; t += dt) {
+  for (double t = 0.0; t <= T + dt; t += dt)
+  {
     geometry_msgs::PoseStamped pose;
     geometry_msgs::Twist vel;
     geometry_msgs::Accel acc;
@@ -206,8 +239,7 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     // accs_x.push_back(acc_x);
     // accs_y.push_back(acc_y);
 
-    pose.header.stamp = ros::Time::now();
-    pose.header.frame_id = "burger/odom";
+    pose.header.frame_id = "burger/base_footprint";
     pose.pose.position.x = pnt_x;
     pose.pose.position.y = pnt_y;
     pose.pose.orientation = calculateQuatfromYaw(atan2(vel_y, vel_x));
@@ -222,10 +254,11 @@ bool Quintic_Polynomials_Planner::solve_polynomials(quintic_polynomials_planner_
     path_vis.poses.push_back(pose);
   }
   pub_polypath_vis.publish(path_vis);
-  save_path2json(path_vis, file_path);
-
+  
   double end_time = ros::Time::now().toSec();
   ROS_INFO("Generate a path successfully! Use %f s", end_time - start_time);
+  double length = calculatePathLength(path_vis);
+  save_path2json(path_vis, file_path);
   
   return true;
 }
